@@ -7,14 +7,14 @@ Import-Module Pscx
 Add-PSSnapin "Vmware.VimAutomation.Core" -ErrorAction SilentlyContinue
 
 #create log
-$masterLog = "c:\autoinstall\masterlog.log"
+$masterLog = ".\masterlog.log"
 if(-not (Test-Path $masterLog)){New-Item $masterLog -Type File}
 
 #vm vsphere server
-$vsphereServer = "10.175.2.24"
+$vsphereServer = "your vsphere server ip"
 $vsphereUser = "administrator"
-$vspherePass = 'P@swrd1'
-$VMlist = get-content c:\autoinstall\config\vmlist.txt
+$vspherePass = 'Password'
+$VMlist = get-content .\config\vmlist.txt
 
 #connect to the virtual server the VM's are on
 Connect-VIServer -Server $vsphereServer -Protocol https -User $vsphereUser -Password $vspherePass
@@ -66,7 +66,7 @@ Write-Output `
     elseif ($installType -eq "Man")
     {
         #get the selected build
-        $NewestFolder = & C:\autoinstall\GetListBox.ps1 $BuildFolder $Upgrade
+        $NewestFolder = & .\GetListBox.ps1 $BuildFolder $Upgrade
         write-host "========The seleted folder is $NewestFolder ========"
         Write-Output "$(Get-Date -f G)`tUsing selected build folder:`t`t`t`t$NewestFolder" >> $masterLog
     
@@ -88,7 +88,7 @@ Write-Output `
  
     
     #set the path for the buildnum.txt location, create it if it doesn't exist and insert a character so the checkbuild.ps1 script works
-    $BN = "c:\autoinstall\buildnum.txt"
+    $BN = ".\buildnum.txt"
     if(-not (Test-Path $BN))
     {
         write-host "Create the build number file."
@@ -103,16 +103,16 @@ Write-Output `
     Write-host "$(Get-Date -f G)`tThe current build installed is:`t`t$BuildNumberInstalled"
     
     #set the path for the local build folder
-    $localBuildFolder = "c:\autoinstall\build"
+    $localBuildFolder = ".\build"
     Write-Output "$(Get-Date -f G)`tWhere the build is copied to:`t`t`t$localBuildFolder" >> $masterLog
     
     
     #path to the IPS remote CSV
-    $csvLocation = "c:\autoinstall\config\IPSremoteALL-bvt1.csv"
+    $csvLocation = ".\config\IPSremoteALL-bvt1.csv"
     Write-Output "$(Get-Date -f G)`tPath to the remote csv:`t`t`t`t$csvLocation" >> $masterLog
     
     #IPS remote install command
-    $IPSinstallcmd = 'C:\"Program Files (x86)"\"IGT Systems"\"Provisioning System"\Bin\IPSCMD.exe /ignoreerrors="True" /manifest="C:\autoinstall\CRDC-9_1-BVT-20110221.xml" /remoteMachines="c:\autoinstall\config\IPSremoteALL-bvt1.csv" /user="adv90\administrator" /password="BVT@swrd1"'
+    $IPSinstallcmd = 'C:\"Program Files (x86)"\"IGT Systems"\"Provisioning System"\Bin\IPSCMD.exe /ignoreerrors="True" /manifest=".\config\CRDC-9_1-BVT-20110221.xml" /remoteMachines=".\config\IPSremoteALL-bvt1.csv" /user="username" /password="password"'
 
     Write-Output "$(Get-Date -f G)`tIPS remote install command:`t`t`t$csvLocation" >> $masterLog
     
@@ -132,18 +132,18 @@ Write-Output `
         
         #Copy the build locally
         Write-Host "Starting to copy build to local folder."
-        & C:\autoinstall\scripts\copyBuildLocal.ps1 $localBuildFolder $NewestFolder
+        & .\scripts\copyBuildLocal.ps1 $localBuildFolder $NewestFolder
         Write-Output "$(Get-Date -f G)`tEnd of copyBuildLocal.ps1" >> $masterLog
         Write-Host "$(Get-Date -f G)`tEnd of copyBuildLocal.ps1"
         
         #Restart VM before uninstall
         Write-Host "Starting to restart VM"
-        & C:\autoinstall\scripts\restartVMs.ps1 $VMlist
+        & .\scripts\restartVMs.ps1 $VMlist
         Write-Host "Sleep 20s before check vm connection."
         sleep -Seconds 20
         
         #Check VM connections    
-        $checkConnections = & c:\autoinstall\scripts\connectioncheck.ps1 $csvLocation
+        $checkConnections = & .\scripts\connectioncheck.ps1 $csvLocation
         Write-Host "$(Get-Date -f G)`tEnd of connectioncheck.ps1" 
         
         if($checkConnections -ne 1)
@@ -155,7 +155,7 @@ Write-Output `
                         
             #Uninstall IGT products that is currently installed
             write-host "uninstall the build that is currently installed"
-            $uninstallStatus = & c:\autoinstall\scripts\uninstallBuild.ps1 $csvLocation          
+            $uninstallStatus = & .\scripts\uninstallBuild.ps1 $csvLocation          
             write-host "The return value of uninstall is $uninstallStatus !"
             Write-Output "$(Get-Date -f G)`tEnd of uninstallBuild.ps1" >> $masterLog
             if($uninstallStatus[1] -eq 0)
@@ -167,7 +167,7 @@ Write-Output `
 
               #Restart VM after uninstall
               Write-Host "Starting to restart VM"
-              & C:\autoinstall\scripts\restartVMs.ps1 $VMlist 
+              & .\scripts\restartVMs.ps1 $VMlist 
                            
                 # Update the build number
                 $BuildNumber > $BN
@@ -182,14 +182,9 @@ Write-Output `
         
          }
  
-# Comments out below 3 lines for debug purpose. 
-#$NewestFolder = "\\10.175.8.253\Build\9.1\SP\rel_rtm_9.1.2188.0300-20120228-0030"
-#$installType = "Man"
-#$IPSinstallcmd = 'C:\"Program Files (x86)"\"IGT Systems"\"Provisioning System"\Bin\IPSCMD.exe /ignoreerrors="True" /manifest="C:\autoinstall\CRDC-9_1-BVT-20110221.xml" /remoteMachines="c:\autoinstall\config\IPSremoteALL-bvt1.csv" /user="adv90\administrator" /password="BVT@swrd1"'
-
                
         #Check VM connections     
-        $checkConnections = & c:\autoinstall\scripts\connectioncheck.ps1 $csvLocation
+        $checkConnections = & .\scripts\connectioncheck.ps1 $csvLocation
         Write-Host "$(Get-Date -f G)`tEnd of connectioncheck.ps1" 
         
         if($checkConnections -ne 1)
@@ -200,20 +195,20 @@ Write-Output `
         {
                 #Check if IPS needs to installed or upgraded locally
                  Write-Output "Check if IPS needs to installed or upgraded locally"
-                & C:\autoinstall\scripts\checkIPS.ps1 $NewestFolder $installType
+                & .\scripts\checkIPS.ps1 $NewestFolder $installType
                 Write-Output "$(Get-Date -f G)`tEnd of checkIPS.ps1" >> $masterLog
         
                 #begin IPS remote install               
                 write-host "begin IPS remote install."
-                & c:\autoinstall\scripts\remoteInstall.ps1 $IPSinstallcmd
+                & .\scripts\remoteInstall.ps1 $IPSinstallcmd
                 Write-Output "$(Get-Date -f G)`tEnd of remoteInstall.ps1" >> $masterLog
                 
                 #begin validation
-                & C:\autoinstall\validate\validate1.9.ps1
+                & .\scripts\validate1.9.ps1
                 
         
                 #Invoke BVT framework to execute test plan.
-                & "C:\Users\administrator.ADV90\Desktop\BVT-2.6\BVTTestPlanGenerator.exe" -f "C:\Users\administrator.ADV90\Desktop\CMS Test Plan.tp" -r "HTML Report:wei.zhang@igt.com,yepeng.yao@igt.com,hua.cheng@igt.com,julian.wu@igt.com,qiuhui.zheng@igt.com,bryan.song@igt.com,jie.zhou@igt.com,ryan.zhao@igt.com" -v $BuildNumberInstalled #$buildNumber  
+                
         }
     }
     
