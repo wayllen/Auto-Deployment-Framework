@@ -204,7 +204,7 @@ Write-Output `
                 Write-Output "$(Get-Date -f G)`tEnd of remoteInstall.ps1" >> $masterLog
                 
                 #begin validation
-                & .\scripts\validate1.9.ps1
+                & .\scripts\validateServices.ps1
                 
         
                 #Invoke BVT framework to execute test plan.
